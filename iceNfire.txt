@@ -1,0 +1,114 @@
+#include <iostream>
+#include <algorithm>
+#include <queue>
+#include <stack>
+#include <vector>
+#include <memory.h>
+using namespace std;
+
+      const int MAXN = 109;
+  int n, m, h;
+  
+  pair <int, int> findCoordinatesOfValue(char value, char desk[MAXN][MAXN]) {
+        for (int i = 0; i <= n + 1; i++) {
+              for (int j = 0; j <= m + 1; j++) {
+                    if (desk[i][j] == value) {
+                          return {i, j};
+                    }
+              }
+        }
+  }
+  
+  int solve(char type, char desk[MAXN][MAXN], int pows[MAXN][MAXN]) {
+        pair <int, int> aCoor = findCoordinatesOfValue('A', desk);
+        pair <int, int> bCoor = findCoordinatesOfValue('B', desk);
+        vector <pair <int, int>> dd = { {-1, 0}, {0, 1}, {1, 0}, {0, -1}, {0, 0}};
+        int action[MAXN][MAXN][MAXN];
+        memset(action, 0, sizeof(action));
+        
+        int x = aCoor.first;
+        int y = aCoor.second;
+        queue <pair <pair <int, int>, int>> q;
+        action[x][y][h] = 1;
+        q.push({{x, y}, h});
+        
+        while (!q.empty()) {
+              auto p = q.front();
+              q.pop();
+              int c = action[p.first.first][p.first.second][p.second];
+              
+              for (int i = 0; i < 5; i++) {
+                    int x1 = p.first.first + dd[i].first;
+                    int y1 = p.first.second + dd[i].second;
+                    char value = desk[x1][y1];
+                    int power = pows[x1][y1];
+                    
+                    if (value != 'X') {
+                          if (value == type) {
+                                if (p.second + power <= h) {
+                                      action[x1][y1][p.second + power] = c + 1;
+                                      q.push({{x1,y1}, p.second + power});
+                                } else if (p.second + power > h) {
+                                      action[x1][y1][p.second + (h - p.second)] = c + 1;
+                                      q.push({{x1,y1}, p.second + (h - p.second)});
+                                }
+                          } else if (value != type) {
+                                if (p.second - power > 0) {
+                                      action[x1][y1][p.second - power] = c + 1;
+                                      q.push({{x1,y1}, p.second - power});
+                                }
+                              }
+                          }
+                    }
+              }
+              
+              int min = 1000000;
+              for (int i = 0; i <= 100; i++) {
+                    if (action[bCoor.first][bCoor.second][i] < min) 
+                    min = action[bCoor.first][bCoor.second][i];
+              }
+              
+              return min;
+              
+        }
+        
+  
+  int main() {
+        cin >> n >> m >> h;
+        char desk[MAXN][MAXN];
+        
+        for (int i = 0; i <= n + 1; i++) {
+              for (int j = 0; j <= m + 1; j++) {
+                    if (i == 0 || i == n - 1 || j == 0 || j == m - 1) {
+                          desk[i][j] = 'X';
+                    } else {
+                          char ch;
+                          cin >> ch;
+                          desk[i][j] = ch;
+                    }
+              }
+        }
+        
+        int pows[MAXN][MAXN];
+        
+        for (int i = 0; i < n; i++) {
+              for (int j = 0; j < m; j++) {
+                    if (i == 0 || i == n - 1 || j == 0 || j == m - 1) {
+                          pows[i][j] = -1;
+                    } else {
+                          cin >> pows[i][j];
+                    }
+              }
+        }
+        
+        char fire = 'F';
+        char ice = 'I';
+        int res1 = solve(fire, desk, pows);
+        int res2 = solve(ice, desk, pows);
+        if (res1) cout << res1;
+        else cout << "impossible" << "\n";
+        if (res2) cout << res2;
+        else cout << "impossible";
+        
+        return 0; 
+  }
